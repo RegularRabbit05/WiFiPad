@@ -13,7 +13,6 @@ public class App {
         Raylib.SetConfigFlags(Raylib.FLAG_WINDOW_RESIZABLE | Raylib.FLAG_WINDOW_ALWAYS_RUN);
         Raylib.InitWindow(300, 175, "WiFiPad");
         Raylib.SetWindowMinSize(300, 175);
-        Raylib.SetTargetFPS(60);
 
         background = new Raylib.Color();
         background.a((byte) 0xFF).r((byte) 0x12).g((byte) 0).b((byte) 0x13);
