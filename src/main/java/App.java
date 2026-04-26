@@ -26,6 +26,7 @@ public class App {
             final int loadingTextW = Raylib.MeasureText(loadingText, 20);
             ControllerData lastData = new ControllerData();
             boolean firstClientConnection = true;
+            float refreshTimer = 0.0f;
             while (isRunning()) {
                 final boolean hasClient = client.foundController();
                 loader.x(Raylib.GetScreenWidth() / 4.f).y(Raylib.GetScreenHeight() / 2.f - 4);
@@ -51,6 +52,8 @@ public class App {
                     if (firstClientConnection) {
                         firstClientConnection = false;
                         client.sendControls(lastData);
+                    } else {
+                        refreshTimer -= Raylib.GetFrameTime();
                     }
 
                     ControllerData data = new ControllerData();
@@ -97,6 +100,12 @@ public class App {
                     if (!data.equals(lastData)) {
                         client.sendControls(data);
                         lastData = data;
+                    }
+
+                    if (refreshTimer <= 0) {
+                        lastData = data;
+                        client.sendControls(lastData);
+                        refreshTimer = 0.5f;
                     }
                 }
             }

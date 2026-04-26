@@ -2,6 +2,19 @@ public class ControllerData {
     public int buttons;
     public int lx, ly, unk1, rx, ry, unk2, unk3, unk4, hat;
 
+    public ControllerData() {
+        buttons = 0;
+        lx = 0;
+        ly = 0;
+        unk1 = 0;
+        rx = 0;
+        ry = 0;
+        unk2 = 0;
+        unk3 = 0;
+        unk4 = 0;
+        hat = 0;
+    }
+
     @SuppressWarnings("unused")
     public void setButton(int buttonIndex, boolean isPressed) {
         if (buttonIndex < 0 || buttonIndex > 31) return;

@@ -19,11 +19,14 @@ int32_t timerDiscovery = 0;
 int32_t previousMillis = 0;
 
 void setup() {
+    setCpuFrequencyMhz(240);
     WiFi.persistent(false);
     WiFiClass::mode(WIFI_STA);
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
-    yield();
+    while (WiFiClass::status() != WL_CONNECTED) delay(100);
+
+    esp_wifi_set_ps(WIFI_PS_NONE);
 
     Gamepad.begin();
     USB.PID(0x0268);
@@ -65,16 +68,25 @@ void loop() {
         uint8_t type;
     } DiscoveryPacket;
 
-    yield();
+    while (const int32_t incomingPacketSize = WiFiUdp.parsePacket()) {
+        if (incomingPacketSize == sizeof(ControlPacket)) {
+            ControlPacket incomingPacket;
+            WiFiUdp.read((uint8_t*) &incomingPacket, sizeof(incomingPacket));
 
-    const int32_t incomingPacketSize = WiFiUdp.parsePacket();
-    if (incomingPacketSize == sizeof(ControlPacket)) {
-        ControlPacket incomingPacket;
-        WiFiUdp.read((uint8_t*) &incomingPacket, sizeof(incomingPacket));
-        if (memcmp(incomingPacket.hdr, PROTO_HEADER, sizeof(incomingPacket.hdr)) == 0 && incomingPacket.type == PROTO_CONTROL_TYPE) {
-            Gamepad.send((int8_t) incomingPacket.x, (int8_t) incomingPacket.y, (int8_t) incomingPacket.rx, (int8_t) incomingPacket.ry, (int8_t) incomingPacket.t, (int8_t) incomingPacket.r, incomingPacket.hat % 9, incomingPacket.buttons);
+            if (*(uint32_t*)incomingPacket.hdr == *(uint32_t*)PROTO_HEADER && incomingPacket.type == PROTO_CONTROL_TYPE) {
+                Gamepad.send(
+                    (int8_t) incomingPacket.x, (int8_t) incomingPacket.y,
+                    (int8_t) incomingPacket.rx, (int8_t) incomingPacket.ry,
+                    (int8_t) incomingPacket.t, (int8_t) incomingPacket.r,
+                    incomingPacket.hat % 9, incomingPacket.buttons
+                );
+            }
+        } else {
+            discardPacket(incomingPacketSize);
         }
-    } else discardPacket(incomingPacketSize);
+    }
+
+    yield();
 
     timerDiscovery -= (int) millis() - previousMillis;
     previousMillis = (int) millis();
